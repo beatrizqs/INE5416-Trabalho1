@@ -1,4 +1,4 @@
-:-  use_module(library(clpfd)), initialization(main).
+:-  use_module(library(clpfd)).
 
 %Acima | Direita | Abaixo | Esquerda
 %Menor: -
@@ -17,98 +17,94 @@ comparadores(ComparadoresPorCelula) :-
     [['+', '-', '/', '/'], ['+', '+', '/', '+'], ['+', '/', '/', '-'], ['-', '+', '/', '/'], ['-', '+', '/', '-'], ['-', '/', '/', '-'], ['-', '+', '/', '/'], ['-', '-', '/', '-'], ['+', '/', '/', '+']]].
 
 
-
 %Achar o i-ésimo da lista
 %O 0-ésimo item da lista é a cabeça da lista, se ela tiver um ou mais itens.
 %O I-ésimo item da lista é o (I-1)-ésimo item da cauda da lista.
+%Armazena a resposta em H/X
 nthLista(0, [H|_], H).
 nthLista(I, [_|T], X) :- I2 is I - 1, nthLista(I2, T, X).
 
 %Achar o i-ésimo da matriz
-nthMatriz(X, Y, Lista, Z) :- nthLista(X, Lista, W), nthLista(Y, W, Z).
+%Primeiro encontra a lista X em Matriz
+%Depois encontra o valor Y na lista
+%Armazena a resposta em Z
+nthMatriz(X, Y, Matriz, Z) :- nthLista(X, Matriz, W), nthLista(Y, W, Z).
 
 
 %Comparacoes entre celulas
+%Se o comparador for '/' não faz nada
 compara(_, _, _, _, '/').
 compara(Numero1, Tabuleiro, X, Y, '+') :- nthMatriz(X, Y, Tabuleiro, Numero2), Numero1 > Numero2.
 compara(Numero1, Tabuleiro, X, Y, '-') :- nthMatriz(X, Y, Tabuleiro, Numero2), Numero1 < Numero2.
 
 
-%Encontra os valores válidos para a célula na linha X, coluna Y
-encontraValoresValidos(Numero, X, Y, Tabuleiro, Comparacoes) :- 
+%Verifica se o valor é válido para a célula na linha X, coluna Y
+valido(Numero, X, Y, Tabuleiro, Comparacoes) :- 
     %Comparadores da célula na linha X, coluna Y
-    nthMatriz(I, J, Comparacoes, ComparadoresCelula),
+    %Busca na matriz de comparadores (Comparacoes)
+    %Salva os comparadores em ComparadoresCelula
+    nthMatriz(X, Y, Comparacoes, ComparadoresCelula),
 
     %Divide os comparadores por direção
+    %Salva em Comparador[Direção]
     nthLista(0, ComparadoresCelula, ComparadorAcima),
     nthLista(1, ComparadoresCelula, ComparadorDireita),
     nthLista(2, ComparadoresCelula, ComparadorAbaixo),
     nthLista(3, ComparadoresCelula, ComparadorEsquerda),
 
-    %Define os vizinhos
-    Acima is X - 1,
-    Direita is Y + 1,
-    Abaixo is X + 1,
-    Esquerda is Y - 1,
-
     %Define as comparações por direção
-    compara(Numero, Tabuleiro, Acima, Y, ComparadorAcima),
-    compara(Numero, Tabuleiro, X, Direita, ComparadorDireita),
-    compara(Numero, Tabuleiro, Abaixo, Y, ComparadorAbaixo),
-    compara(Numero, Tabuleiro, X, Esquerda, ComparadorEsquerda).
+    compara(Numero, Tabuleiro, X-1, Y, ComparadorAcima),
+    compara(Numero, Tabuleiro, X, Y+1, ComparadorDireita),
+    compara(Numero, Tabuleiro, X+1, Y, ComparadorAbaixo),
+    compara(Numero, Tabuleiro, X, Y-1, ComparadorEsquerda).
 
 
 %Percorre todas posições da matriz e define as comparações referentes a cada posição.
 regras(_, _, 9, _).
-regras(Tabuleiro, Comparacoes, X, 9) :- A is X + 1, regras(Tabuleiro, Comparacoes, A, 0).
 regras(Tabuleiro, Comparacoes, X, Y) :- 
     nthMatriz(X, Y, Tabuleiro, Numero),
-    encontraValoresValidos(Numero, X, Y, Tabuleiro, Comparacoes),
+    valido(Numero, X, Y, Tabuleiro, Comparacoes),
     A is Y + 1,
     regras(Tabuleiro, Comparacoes, X, A).
+%Caso esteja na última coluna
+regras(Tabuleiro, Comparacoes, X, 9) :- A is X + 1, regras(Tabuleiro, Comparacoes, A, 0).
 
-
-/*
- Definição o que é um tabuleiro válido de vergleich.
- Um possível tabuleiro válido de vergleich é uma matriz de
- ordem 9 onde cada linha, coluna e região contem todos os números 
- de 1 a 9 sem repetições. Além disso, cada posição deve satisfazer
- certas comparações (maior ou menor) com seus vizinhos de região.
- */
+%Regras do Jogo
 vergleich(Tabuleiro, Comparacoes) :-
-    %O tabuleiro tem 9 linhas
+    %9 linhas
     length(Tabuleiro, 9),
 
-    %Cada linha 9 colunas
+    %9 colunas
     maplist(same_length(Tabuleiro), Tabuleiro),
 
-    %Concatena todos os números do tabuleiro em TodosOsNumeroeros
-    append(Tabuleiro, TodosOsNumeroeros),
+    %Concatena todos os números do tabuleiro em NumerosTotal
+    append(Tabuleiro, NumerosTotal),
 
     %O tabuleiro tem apenas números entre 1 e 9
-    TodosOsNumeroeros ins 1..9,
+    %ins(Vars, Domain): Vars-Lista de variáveis; Domain:Valores que Vars pode assumir
+    NumerosTotal ins 1..9,
 
-    %O tabuleiro segue a regra do Tabuleiro vergleichs
+    %O tabuleiro segue a regra do Tabuleiro vergleich
     regras(Tabuleiro, Comparacoes, 0, 0),
 
-    %Todas as linhas possuem números entre 1 e 9 sem repetições
+    %Sem repetição de valores por linha
     maplist(all_distinct, Tabuleiro),
 
     %Inverte as linhas e colunas
     transpose(Tabuleiro, Columns),
 
-    %Todas as colunas possuem números entre 1 e 9 sem repetições
+    %Sem repetição de valores por coluna (agora linha)
     maplist(all_distinct, Columns), 
 
     %Nomeia todas as linhas da Matriz
-    Tabuleiro = [As,Bs,Cs,Ds,Es,Fs,Gs,Hs,Is],
+    Tabuleiro = [Linha1, Linha2, Linha3, Linha4, Linha5, Linha6, Linha7, Linha8, Linha9],
 
 
-    %A partir das linhas nomeadas, divide em 3 blocos de 3 linhas cada
-    %Define que cada bloco contem 3 regiões que devem conter todos os números entre 1 e 9 sem repetições
-    blocks(As, Bs, Cs), % Linhas (0-2)
-    blocks(Ds, Es, Fs), % Linhas (3-5)
-    blocks(Gs, Hs, Is). % Linhas (6-8)
+    %A partir das linhas nomeadas, divide em 3 regioes de 3 linhas cada
+    %Sem repetição de valores por regiao
+    regiao(Linha1, Linha2, Linha3),
+    regiao(Linha4, Linha5, Linha6),
+    regiao(Linha7, Linha8, Linha9).
 
 
 /*
@@ -117,13 +113,13 @@ vergleich(Tabuleiro, Comparacoes) :-
     Pega os 3 primeiros itens de cada linha e diz que todos os 9 itens precisam ser diferentes.
     Ao final repete o processo para a calda ou o que sobrou da lista.
 */
-blocks([], [], []).
-blocks([N1,N2,N3|Ns1], [N4,N5,N6|Ns2], [N7,N8,N9|Ns3]) :-
+regiao([], [], []).
+regiao([N1,N2,N3|Ns1], [N4,N5,N6|Ns2], [N7,N8,N9|Ns3]) :-
     all_distinct([N1,N2,N3,N4,N5,N6,N7,N8,N9]),
-    blocks(Ns1, Ns2, Ns3).
+    regiao(Ns1, Ns2, Ns3).
 
 
-main :- matrizComparacoes(Comparacoes),
+solve :- matrizComparacoes(Comparacoes),
     vergleich(P, Comparacoes),
     maplist(label, P), maplist(portray_clause, P),
     halt.
