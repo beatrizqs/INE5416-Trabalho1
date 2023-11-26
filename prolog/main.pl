@@ -4,8 +4,8 @@
 %Menor: -
 %Maior: +
 %Sem comparador: /
-comparadores(ComparadoresPorCelula) :-
-    ComparadoresPorCelula = [
+comparadoresPorCelula(Comparadores) :-
+    Comparadores = [
     [['/', '+', '+', '/'], ['/', '+', '-', '-'], ['/', '/', '-', '-'], ['/', '-', '+', '/'], ['/', '+', '+', '+'], ['/', '/', '+', '-'], ['/', '-', '-', '/'], ['/', '+', '+', '+'], ['/', '/', '-', '-']],
     [['-', '-', '-', '/'], ['+', '-', '+', '+'], ['+', '/', '+', '+'], ['-', '-', '-', '/'], ['-', '+', '-', '+'], ['-', '/', '-', '-'], ['+', '+', '+', '/'], ['-', '-', '+', '-'], ['+', '/', '+', '+']],
     [['+', '+', '/', '/'], ['-', '+', '/', '-'], ['-', '/', '/', '-'], ['+', '+', '/', '/'], ['+', '-', '/', '-'], ['+', '/', '/', '+'], ['-', '+', '/', '/'], ['-', '-', '/', '-'], ['-', '/', '/', '+']],
@@ -14,10 +14,8 @@ comparadores(ComparadoresPorCelula) :-
     [['-', '-', '/', '/'], ['-', '+', '/', '+'], ['-', '/', '/', '-'], ['-', '-', '/', '/'], ['-', '-', '/', '+'], ['-', '/', '/', '+'], ['+', '-', '/', '/'], ['+', '+', '/', '+'], ['+', '/', '/', '-']],
     [['/', '+', '+', '/'], ['/', '-', '+', '-'], ['/', '/', '+', '+'], ['/', '+', '+', '/'], ['/', '-', '-', '-'], ['/', '/', '-', '+'], ['/', '+', '+', '/'], ['/', '+', '+', '-'], ['/', '/', '-', '-']],
     [['-', '+', '-', '/'], ['-', '-', '-', '-'], ['-', '/', '-', '+'], ['-', '-', '+', '/'], ['+', '-', '+', '+'], ['+', '/', '+', '+'], ['-', '+', '+', '/'], ['-', '-', '+', '-'], ['+', '/', '-', '+']],
-    [['+', '-', '/', '/'], ['+', '+', '/', '+'], ['+', '/', '/', '-'], ['-', '+', '/', '/'], ['-', '+', '/', '-'], ['-', '/', '/', '-'], ['-', '+', '/', '/'], ['-', '-', '/', '-'], ['+', '/', '/', '+']]].
-
-
-valoresPorCelula([]).
+    [['+', '-', '/', '/'], ['+', '+', '/', '+'], ['+', '/', '/', '-'], ['-', '+', '/', '/'], ['-', '+', '/', '-'], ['-', '/', '/', '-'], ['-', '+', '/', '/'], ['-', '-', '/', '-'], ['+', '/', '/', '+']]
+    ].
 
 
 %ACHAR O I-ÉSIMO DA LISTA
@@ -58,7 +56,8 @@ compara(Numero1, Tabuleiro, X, Y, '+') :- nthMatriz(X, Y, Tabuleiro, Numero2), N
 compara(Numero1, Tabuleiro, X, Y, '-') :- nthMatriz(X, Y, Tabuleiro, Numero2), Numero1 < Numero2.
 
 %GERA LISTA DE VALORES POR CÉLULA
-preprocess(X, Y, Tabuleiro, Comparacoes, PossibilidadesCelula) :-
+%Retorna os valores para a célula em X,Y em PossibilidadesCelula
+preprocess(X, Y, Comparacoes, PossibilidadesCelula) :-
     %Encontra os comparadores da célula na linha X coluna Y
     nthMatriz(X, Y, Comparacoes, ComparadoresCelula),
 
@@ -166,7 +165,7 @@ regiao([N1,N2,N3|Ns1], [N4,N5,N6|Ns2], [N7,N8,N9|Ns3]) :-
     regiao(Ns1, Ns2, Ns3).
 
 
-solve :- matrizComparacoes(Comparacoes),
+solve :- comparadoresPorCelula(Comparacoes),
     vergleich(P, Comparacoes),
     maplist(label, P), maplist(portray_clause, P),
     halt.
